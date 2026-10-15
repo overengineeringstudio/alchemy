@@ -1,0 +1,46 @@
+name: Vault exact-SHA package
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/vault-pack]
+    paths: [.github/workflows/vault-pack.yml]
+permissions:
+  contents: read
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 074a307d31b843b0ce93a2fd80de1c9ea3f1b96a
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -r --filter alchemy... run build:package
+      - name: Pack and record provenance
+        shell: bash
+        run: |
+          mkdir -p /tmp/vault-pack
+          pnpm --dir packages/alchemy pack --pack-destination /tmp/vault-pack
+          mv /tmp/vault-pack/alchemy-*.tgz /tmp/vault-pack/alchemy-074a307d.tgz
+          cd /tmp/vault-pack
+          sha512sum alchemy-074a307d.tgz > alchemy-074a307d.tgz.sha512
+          printf 'source_commit=%s\nrun_url=%s\nrunner=%s\nrunner_os=%s\nrunner_arch=%s\n' '074a307d31b843b0ce93a2fd80de1c9ea3f1b96a' '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' '$RUNNER_NAME' '$RUNNER_OS' '$RUNNER_ARCH' > provenance.txt
+          node --version >> provenance.txt
+          pnpm --version >> provenance.txt
+          bun --version >> provenance.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alchemy-074a307d
+          path: /tmp/vault-pack/
+          if-no-files-found: error
+          retention-days: 14
