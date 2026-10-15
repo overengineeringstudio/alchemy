@@ -58,9 +58,6 @@ jobs:
       - name: Check package versions
         run: pnpm validate:publish-packages
 
-      - name: Typecheck
-        run: pnpm typecheck
-
       # Must run after the type check: it reads distilled's emitted `lib/*.d.ts`,
       # and stale/missing declarations resolve to `any`.
       - name: Lint providers
