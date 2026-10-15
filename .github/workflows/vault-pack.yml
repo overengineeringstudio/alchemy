@@ -27,6 +27,13 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 12.9.1
+      - name: Add hosted runner swap for declaration build
+        run: |
+          sudo fallocate -l 8G /swapfile-vault
+          sudo chmod 600 /swapfile-vault
+          sudo mkswap /swapfile-vault
+          sudo swapon /swapfile-vault
+          free -h
       - run: pnpm install --frozen-lockfile
       - run: pnpm -r --filter alchemy... run build:package
       - name: Pack and record provenance
