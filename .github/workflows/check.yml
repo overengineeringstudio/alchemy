@@ -19,7 +19,7 @@ concurrency:
 jobs:
   check:
     name: Check
-    runs-on: blacksmith-8vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,6 +36,14 @@ jobs:
             website-astro-check-${{ runner.os }}-${{ github.event.pull_request.number || 'main' }}-${{ github.sha }}-
             website-astro-check-${{ runner.os }}-${{ github.event.pull_request.number || 'main' }}-
             website-astro-check-${{ runner.os }}-main-
+
+      - name: Add hosted runner swap for declaration build
+        run: |
+          sudo fallocate -l 8G /swapfile-vault
+          sudo chmod 600 /swapfile-vault
+          sudo mkswap /swapfile-vault
+          sudo swapon /swapfile-vault
+          free -h
 
       - name: Setup pnpm, Node.js, Bun and install dependencies
         uses: pnpm/setup@703c52620218391530e48b9e8870d5c0082e1b9b # v2.1.0
